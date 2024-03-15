@@ -8,14 +8,13 @@ class Gemini {
 
   Gemini._privateConstructor() {
     final apiKey = Platform.environment['GEMINI_KEY'] ?? 'default_key';
-    model = GenerativeModel(model: 'gemini-pro', apiKey: apiKey,
-        safetySettings: [
-          SafetySetting(HarmCategory.harassment, HarmBlockThreshold.none),
-          SafetySetting(HarmCategory.dangerousContent, HarmBlockThreshold.none),
-          SafetySetting(HarmCategory.sexuallyExplicit, HarmBlockThreshold.none),
-          SafetySetting(HarmCategory.hateSpeech, HarmBlockThreshold.none),
-        ]
-    );
+    model =
+        GenerativeModel(model: 'gemini-pro', apiKey: apiKey, safetySettings: [
+      SafetySetting(HarmCategory.harassment, HarmBlockThreshold.none),
+      SafetySetting(HarmCategory.dangerousContent, HarmBlockThreshold.none),
+      SafetySetting(HarmCategory.sexuallyExplicit, HarmBlockThreshold.none),
+      SafetySetting(HarmCategory.hateSpeech, HarmBlockThreshold.none),
+    ]);
     chat = model?.startChat(history: []);
   }
 
