@@ -1,12 +1,10 @@
 import 'dart:convert';
 
-import 'package:plot_pixie/src/model/Character.dart';
-import 'package:plot_pixie/src/model/Node.dart';
-import 'package:plot_pixie/src/model/Trait.dart';
+import '../model/Node.dart';
+import '../model/Character.dart';
+import '../model/Trait.dart';
 
-import 'gemini/Gemini.dart';
-
-class Prompter {
+class PromptManipulator {
   static Node _generateNodeStructure(List<String> types) {
     return Node(types[0], "", "",
         types.length > 1 ? [_generateNodeStructure(types.sublist(1))] : []);
@@ -46,15 +44,17 @@ class Prompter {
     return decorated;
   }
 
-static  String _removeEmptyArrays(String jsonString) {
-  var jsonObject = jsonDecode(jsonString);
-  jsonObject.forEach((key, value) {
-    if (value is List && value.isEmpty) {
-      jsonObject.remove(key);
+  static String _removeEmptyArrays(String jsonString) {
+    var jsonObject = jsonDecode(jsonString);
+    List<String> keys = List<String>.from(jsonObject.keys);
+    for (String key in keys) {
+      var value = jsonObject[key];
+      if (value is List && value.isEmpty) {
+        jsonObject.remove(key);
+      }
     }
-  });
-  return jsonEncode(jsonObject);
-}
+    return jsonEncode(jsonObject);
+  }
 
   static dynamic convertResult(String? text, String returnType, bool isArray) {
     if (text != null && text.startsWith('```json') && text.endsWith('```')) {
@@ -65,7 +65,7 @@ static  String _removeEmptyArrays(String jsonString) {
 }
 
 dynamic decodeJson(String returnType, String text, bool isArray) {
-  var fromJson;
+  Object Function(Map<String, dynamic> json) fromJson;
   switch (returnType) {
     case 'Node':
       fromJson = Node.fromJson;
@@ -84,26 +84,5 @@ dynamic decodeJson(String returnType, String text, bool isArray) {
     return (jsonDecode(text) as List).map((item) => fromJson(item)).toList();
   } else {
     return fromJson(jsonDecode(text));
-  }
-}
-
-void main() async {
-  /*
-  var prompt = Prompter.decoratePrompt("Generate an idea about a play regarding what it means to be in love", "Node", options:"idea", isArray:false);
-  print(prompt);
-  var result = await Gemini().prompt(prompt);
-  var parsedResult = Prompter.convertResult(result, "Node", false);
-  print(jsonEncode((parsedResult as Node).toJson()));
- */
-
-  var prompt = Prompter.decoratePrompt(
-      "We're in a far away galaxy where people are human dinosaur hybrids, tell me about 4 different characters in the story.",
-      "Character",
-      isArray: true);
-  print(prompt);
-  var parsedResult =
-      Prompter.convertResult(await Gemini().prompt(prompt), "Character", true);
-  for (var character in parsedResult) {
-    print(jsonEncode((character as Character).toJson()));
   }
 }

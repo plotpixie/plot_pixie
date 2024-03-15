@@ -1,8 +1,10 @@
+import 'dart:developer';
 import 'dart:io' show Platform;
 
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:plot_pixie/src/ai/AiEngine.dart';
 
-class Gemini {
+class Gemini extends AiEngine {
   GenerativeModel? model;
   ChatSession? chat;
 
@@ -24,27 +26,19 @@ class Gemini {
     return _instance;
   }
 
-  Future<String?> prompt(String prompt, {int maxRetries = 5}) async {
-    int attempt = 0;
-    while (attempt < maxRetries) {
-      try {
-        if (chat != null) {
-          var response = await chat?.sendMessage(Content.text(prompt));
-          return response?.text;
-        } else {
-          break;
-        }
-      } catch (e) {
-        attempt++;
-        if (e.toString() == "Candidate was blocked due to safety") {
-          chat = model?.startChat(history: []);
-        }
-        print('Attempt $attempt failed with error: $e');
-        if (attempt == maxRetries) {
-          print('Max retries reached. Throwing error.');
-          rethrow;
-        }
+  @override
+  Future<String?> prompt(String prompt) async {
+    try {
+      if (chat != null) {
+        var response = await chat?.sendMessage(Content.text(prompt));
+        return response?.text;
       }
+    } catch (e) {
+      if (e.toString() == "Candidate was blocked due to safety") {
+        chat = model?.startChat(history: []);
+      }
+      log('Failed with error: $e');
+      rethrow;
     }
     return null;
   }
