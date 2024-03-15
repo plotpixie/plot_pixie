@@ -34,7 +34,7 @@ class Prompter {
         options = "outline,act,beat";
       }
       decorated +=
-          _isArray(_getNodeRepresentation(options.split(",")), isArray);
+          _isArray(_removeEmptyArrays(_getNodeRepresentation(options.split(","))), isArray);
     } else if (returnType == 'Character') {
       if (options.isEmpty) {
         options =
@@ -45,6 +45,16 @@ class Prompter {
     }
     return decorated;
   }
+
+static  String _removeEmptyArrays(String jsonString) {
+  var jsonObject = jsonDecode(jsonString);
+  jsonObject.forEach((key, value) {
+    if (value is List && value.isEmpty) {
+      jsonObject.remove(key);
+    }
+  });
+  return jsonEncode(jsonObject);
+}
 
   static dynamic convertResult(String? text, String returnType, bool isArray) {
     if (text != null && text.startsWith('```json') && text.endsWith('```')) {
