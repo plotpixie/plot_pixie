@@ -39,6 +39,7 @@ dependencies:
   path: ^1.9.0
   json_annotation: ^4.8.1
   google_generative_ai: ^0.2.2
+  appinio_swiper: ^2.1.0
 
 dev_dependencies:
   flutter_test:
