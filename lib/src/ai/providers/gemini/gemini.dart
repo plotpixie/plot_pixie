@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io' show Platform;
 
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:plot_pixie/src/ai/AiEngine.dart';
+import 'package:plot_pixie/src/ai/ai_engine.dart';
 
 class Gemini extends AiEngine {
   GenerativeModel? model;
@@ -30,7 +30,7 @@ class Gemini extends AiEngine {
   Future<String?> prompt(String prompt) async {
     try {
       if (chat != null) {
-        var response = await chat?.sendMessage(Content.text(prompt));
+        var response = await model?.generateContent([Content.text(prompt)]);
         return response?.text;
       }
     } catch (e) {

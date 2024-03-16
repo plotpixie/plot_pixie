@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'Trait.g.dart';
+part 'trait.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Trait {

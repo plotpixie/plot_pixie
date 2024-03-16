@@ -1,6 +1,6 @@
-import 'package:plot_pixie/src/ai/providers/gemini/Gemini.dart';
+import 'package:plot_pixie/src/ai/providers/gemini/gemini.dart';
 
-import 'AiEngine.dart';
+import 'ai_engine.dart';
 
 class AiManager {
   static final AiManager _instance = AiManager._privateConstructor();

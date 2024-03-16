@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'Trait.dart';
+part of 'trait.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

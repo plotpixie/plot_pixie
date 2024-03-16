@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'Node.dart';
+part of 'node.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -15,6 +15,11 @@ Node _$NodeFromJson(Map<String, dynamic> json) => Node(
                   e == null ? null : Node.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      (json['traits'] as List<dynamic>?)
+              ?.map((e) =>
+                  e == null ? null : Trait.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$NodeToJson(Node instance) => <String, dynamic>{
@@ -22,4 +27,5 @@ Map<String, dynamic> _$NodeToJson(Node instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'nodes': instance.nodes.map((e) => e?.toJson()).toList(),
+      'traits': instance.traits.map((e) => e?.toJson()).toList(),
     };
