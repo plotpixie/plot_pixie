@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plot_pixie/src/presentation/ChoiceSwiper.dart';
+import 'package:plot_pixie/src/presentation/choice_swiper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: ThemeMode.system, // system theme
       home: ChoiceSwiper(title: '',),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
