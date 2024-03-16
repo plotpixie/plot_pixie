@@ -19,11 +19,12 @@ class MyApp extends StatelessWidget {
       darkTheme: ThemeData(
         brightness: Brightness.dark, // dark theme
       ),
-      themeMode: ThemeMode.system, // system theme
-      home: ChoiceSwiper(title: '',),
+      themeMode: ThemeMode.system,
+      // system theme
+      home: ChoiceSwiper(
+        title: '',
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
 }
-
-

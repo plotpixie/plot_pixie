@@ -5,7 +5,8 @@ part 'node.g.dart';
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class Node {
-  Node(this.type, this.title, this.description, [this.nodes = const [], this.traits = const[]]);
+  Node(this.type, this.title, this.description,
+      [this.nodes = const [], this.traits = const []]);
 
   String type;
   String title;
@@ -25,5 +26,4 @@ class Node {
     }
     return '';
   }
-
 }

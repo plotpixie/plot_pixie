@@ -1,4 +1,4 @@
- import 'dart:developer';
+import 'dart:developer';
 
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:flutter/cupertino.dart';
@@ -28,7 +28,8 @@ class ChoiceSwiper extends StatefulWidget {
 
 class _ChoiceSwiperState extends State<ChoiceSwiper> {
   final AppinioSwiperController controller = AppinioSwiperController();
-  final Node idea = Node("idea", "The Illusion of Love", "A struggling wedding magician, down on his luck and drowning in debt, becomes consumed by a dark obsession with a beautiful bride.  He discovers he has the power to manipulate emotions, and a twisted plan takes root in his mind.  Through subtle illusions and suggestive whispers, he warps the groom's perception, turning joyful anticipation into cold suspicion.  The wedding ceremony becomes a grotesque parody of love, with the vows laced with hidden barbs and the celebratory dance a performance of simmering resentment.  The magician takes a perverse satisfaction in orchestrating the disaster,  a cruel puppet master pulling the strings of the hapless groom's emotions.  But as the night progresses and the bride's true colors begin to show, the magician realizes he may have gotten more than he bargained for, entangled in a web of deceit with a woman as dangerous as his own dark magic.");
+  final Node idea = Node("idea", "The Illusion of Love",
+      "A struggling wedding magician, down on his luck and drowning in debt, becomes consumed by a dark obsession with a beautiful bride.  He discovers he has the power to manipulate emotions, and a twisted plan takes root in his mind.  Through subtle illusions and suggestive whispers, he warps the groom's perception, turning joyful anticipation into cold suspicion.  The wedding ceremony becomes a grotesque parody of love, with the vows laced with hidden barbs and the celebratory dance a performance of simmering resentment.  The magician takes a perverse satisfaction in orchestrating the disaster,  a cruel puppet master pulling the strings of the hapless groom's emotions.  But as the night progresses and the bride's true colors begin to show, the magician realizes he may have gotten more than he bargained for, entangled in a web of deceit with a woman as dangerous as his own dark magic.");
 
   List<Node> characters = [];
 
@@ -44,8 +45,11 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
 
   Future<void> _fetchCharacters() async {
     log("Fetching");
-    List<Node> newCards =  await Pixie().getCharacterSuggestions(idea, numberOfCharacters: 2, approvedCharacters: selected, rejectedCharacters: discarded);
-    if(cardsLeft < 3) {
+    List<Node> newCards = await Pixie().getCharacterSuggestions(idea,
+        numberOfCharacters: 2,
+        approvedCharacters: selected,
+        rejectedCharacters: discarded);
+    if (cardsLeft < 3) {
       cardsLeft += newCards.length;
       characters += newCards;
       log("cards left: $cardsLeft");
@@ -63,90 +67,95 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
         child: characters.isEmpty
             ? Center(child: Text('Loading characters...'))
             : AppinioSwiper(
-          invertAngleOnBottomDrag: true,
-          backgroundCardCount: 3,
-          swipeOptions: const SwipeOptions.symmetric(horizontal: true, vertical: false), // Now only horizontal swipes are allowed
-          controller: controller,
-          onSwipeEnd: _swipeEnd,
-          onEnd: _onEnd,
-          cardCount: characters.length,
-          cardBuilder: (BuildContext context, int index) {
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                alignment: Alignment.center,
-                color: widget.colors[index % widget.colors.length],
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(height: 20.0),
-                      Text(
-                        '${characters[index].title}',
-                        style: TextStyle(
-                          fontSize: 32.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                      SizedBox(height: 10.0),
-                      Text(
-                        characters[index].description,
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                      SizedBox(height: 20.0),
-                      Expanded(
+                invertAngleOnBottomDrag: true,
+                backgroundCardCount: 3,
+                swipeOptions: const SwipeOptions.symmetric(
+                    horizontal: true, vertical: false),
+                // Now only horizontal swipes are allowed
+                controller: controller,
+                onSwipeEnd: _swipeEnd,
+                onEnd: _onEnd,
+                cardCount: characters.length,
+                cardBuilder: (BuildContext context, int index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      alignment: Alignment.center,
+                      color: widget.colors[index % widget.colors.length],
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
+                            SizedBox(height: 20.0),
+                            Text(
+                              '${characters[index].title}',
+                              style: TextStyle(
+                                fontSize: 32.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
                             SizedBox(height: 10.0),
-                            Table(
-                              columnWidths: const {
-                                0: FlexColumnWidth(2), // Adjust widths as needed
-                                1: FlexColumnWidth(3),
-                              },
-                              children: [
-                                for (var trait in characters[index].traits)
-                                  TableRow(
+                            Text(
+                              characters[index].description,
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                            SizedBox(height: 20.0),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  SizedBox(height: 10.0),
+                                  Table(
+                                    columnWidths: const {
+                                      0: FlexColumnWidth(2),
+                                      // Adjust widths as needed
+                                      1: FlexColumnWidth(3),
+                                    },
                                     children: [
-                                      Text(
-                                        trait!.type,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16.0,
-                                          color: Colors.black,
-                                          decoration: TextDecoration.none,
+                                      for (var trait
+                                          in characters[index].traits)
+                                        TableRow(
+                                          children: [
+                                            Text(
+                                              trait!.type,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16.0,
+                                                color: Colors.black,
+                                                decoration: TextDecoration.none,
+                                              ),
+                                            ),
+                                            Text(
+                                              trait!.description,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                                fontSize: 16.0,
+                                                color: Colors.black,
+                                                decoration: TextDecoration.none,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                      Text(trait!.description,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                          fontSize: 16.0,
-                                          color: Colors.black,
-                                          decoration: TextDecoration.none,
-                                        ),
-                                      ),
                                     ],
                                   ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
       ),
     );
   }
@@ -155,7 +164,7 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
     switch (activity) {
       case Swipe():
         cardsLeft--;
-        if(cardsLeft < 2){
+        if (cardsLeft < 2) {
           _fetchCharacters();
         }
         log("cards left: $cardsLeft");
@@ -165,7 +174,8 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
         } else if (activity.direction == AxisDirection.left) {
           discarded.add(characters[previousIndex]);
           log('Added character to discarded list: ${discarded.last.title}');
-        }        log('The card was swiped to the : ${activity.direction}');
+        }
+        log('The card was swiped to the : ${activity.direction}');
         log('previous index: $previousIndex, target index: $targetIndex');
         break;
       case Unswipe():

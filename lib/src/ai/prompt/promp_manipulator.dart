@@ -10,36 +10,44 @@ class PromptManipulator {
     if (types.isEmpty) {
       throw ArgumentError('Types cannot be empty');
     }
-    return Node(types.first, '', '', types.length > 1 ? [_generateNodeStructure(types.sublist(1))] : []);
+    return Node(types.first, '', '',
+        types.length > 1 ? [_generateNodeStructure(types.sublist(1))] : []);
   }
 
   static String _getNodeRepresentation(List<String> types) {
-    return _removeEmptyArrays(jsonEncode(_generateNodeStructure(types).toJson()));
+    return _removeEmptyArrays(
+        jsonEncode(_generateNodeStructure(types).toJson()));
   }
 
   static String _getCharacterRepresentation() {
-    return _removeEmptyArrays(jsonEncode(Node('character', 'name', 'description', [], [Trait('age', '')]).toJson()));
+    return _removeEmptyArrays(jsonEncode(
+        Node('character', 'name', 'description', [], [Trait('age', '')])
+            .toJson()));
   }
 
   static String _isArray(String s, bool isArray) {
     return isArray ? '[$s]' : s;
   }
 
-  static String decoratePrompt(String text, ReturnType returnType, {String options = '', bool isArray = false}) {
-    String decorated = '$text. Return well-formed JSON and escape any characters that need escaping. OUTPUT FORMAT: ';
+  static String decoratePrompt(String text, ReturnType returnType,
+      {String options = '', bool isArray = false}) {
+    String decorated =
+        '$text. Return well-formed JSON and escape any characters that need escaping. OUTPUT FORMAT: ';
 
     switch (returnType) {
       case ReturnType.node:
         if (options.isEmpty) {
           options = 'outline,act,beat';
         }
-        decorated += _isArray((_getNodeRepresentation(options.split(','))), isArray);
+        decorated +=
+            _isArray((_getNodeRepresentation(options.split(','))), isArray);
         break;
       case ReturnType.character:
-        decorated += _isArray(_getCharacterRepresentation(), isArray) + '. Be specific. Instead of <character> has a habit of humming to herself when she\'s happy in the trait details prefer shorter sentences like hums to herself when happy. Do not return integer values in fields. Trait descriptions must always be a string.';
+        decorated += _isArray(_getCharacterRepresentation(), isArray) +
+            '. Be specific. Instead of <character> has a habit of humming to herself when she\'s happy in the trait details prefer shorter sentences like hums to herself when happy. Do not return integer values in fields. Trait descriptions must always be a string.';
         break;
       case ReturnType.trait:
-      // Handle Trait case if necessary
+        // Handle Trait case if necessary
         break;
     }
     return decorated;
@@ -68,7 +76,8 @@ class PromptManipulator {
     }
   }
 
-  static dynamic convertResult(String? text, ReturnType returnType, bool isArray) {
+  static dynamic convertResult(
+      String? text, ReturnType returnType, bool isArray) {
     if (text != null && text.startsWith('```json') && text.endsWith('```')) {
       text = text.substring(7, text.length - 3).trim();
     }
