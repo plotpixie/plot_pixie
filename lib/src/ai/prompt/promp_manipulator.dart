@@ -32,7 +32,7 @@ class PromptManipulator {
   static String decoratePrompt(String text, ReturnType returnType,
       {String options = '', bool isArray = false}) {
     String decorated =
-        '$text. Return well-formed JSON and escape any characters that need escaping. OUTPUT FORMAT: ';
+        '$text. Return well-formed JSON and escape any characters that need escaping. Results are one single JSON array. OUTPUT FORMAT: ';
 
     switch (returnType) {
       case ReturnType.node:

@@ -1,4 +1,5 @@
 import 'package:plot_pixie/src/ai/providers/gemini/gemini.dart';
+import 'package:plot_pixie/src/ai/providers/openrouter/open_router.dart';
 
 import 'ai_engine.dart';
 
@@ -9,6 +10,13 @@ class AiManager {
 
   AiManager._privateConstructor() {
     _engines['gemini'] = Gemini();
+    /*
+    _engines['mythomist'] = OpenRouter('gryphe/mythomist-7b:free'); // doesn't seem to handle number of characters very well, otherwise pretty solid
+    _engines['cinematika'] = OpenRouter('openrouter/cinematika-7b:free');
+    _engines['mistral'] = OpenRouter('mistralai/mistral-7b-instruct:free'); // tendency to return individual JSON arrays. Results not well formed.
+    _engines['capybara'] = OpenRouter('nousresearch/nous-capybara-7b:free'); // seeing issues with rendering traits in characters.
+    _engines['gemma'] = OpenRouter('google/gemma-7b-it:free');
+    */
   }
 
   factory AiManager() {
@@ -23,4 +31,5 @@ class AiManager {
       throw Exception('AI engine $engineName not found');
     }
   }
+
 }
