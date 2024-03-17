@@ -17,16 +17,14 @@ class Pixie {
 
   Future<List<Node>> getCharacterSuggestions(Node idea,
       {int numberOfCharacters = 5,
-      List<Node> approvedCharacters = const [],
-      List<Node> rejectedCharacters = const []}) async {
+      List<Node> existingCharacters = const []}) async {
     String options =
         'guilty pleasure,catchphrase,quirks,pet peeves,favorite quote,strangest dream,embarrassing memory,weird habit,ideal weekend,bucket list item,guilty pleasure,lucky charm,hidden talent,dream vacation,deepest secret,strange hobby, proudest achievement, best childhood memory';
-    String approved = (approvedCharacters.length > 0)
-        ? "Besides these characters: ${summarizeRoles(approvedCharacters)}, "
+    String existing = (existingCharacters.length > 0)
+        ? "Besides these characters: ${summarizeRoles(existingCharacters)}, "
         : '';
-    String rejected = '';
     String decoratedPrompt = PromptManipulator.decoratePrompt(
-        "My story has this title: '${idea.title}' and this logline: '${idea.description}'. $approved. Who are the other protagonists, antagonists, minor characters and supporting characters? Imagine $numberOfCharacters other characters for the story.  title should be 'first name, age, occupation'. The description is a detailed 3 paragraph backstory in the character's own voice. Don't talk about others. Generate 4 to 6 traits. Traits are unique and obscure information about the character. trait types must be in this list: ' $options '. ",
+        "My story has this title: '${idea.title}' and this logline: '${idea.description}'. $existing. Who are the other protagonists, antagonists, minor characters and supporting characters? Imagine $numberOfCharacters other characters for the story.  title should be 'first name, age, occupation'. The description is a detailed 3 paragraph backstory in the character's own voice. Don't talk about others. Generate 4 to 6 traits. Traits are unique and obscure information about the character. trait types must be in this list: ' $options '. ",
         ReturnType.character,
         isArray: true);
 
@@ -57,17 +55,17 @@ void main() async {
   print(jsonEncode(characterList));
 
   List<Node> characterList2 = await Pixie()
-      .getCharacterSuggestions(idea, approvedCharacters: characterList);
+      .getCharacterSuggestions(idea, existingCharacters: characterList);
 
   print(jsonEncode(characterList2));
 
   List<Node> characterList3 = await Pixie().getCharacterSuggestions(idea,
-      approvedCharacters: characterList, rejectedCharacters: characterList2);
+      existingCharacters: characterList, rejectedCharacters: characterList2);
 
   print(jsonEncode(characterList3));
 
   List<Node> characterList4 = await Pixie().getCharacterSuggestions(idea,
-      approvedCharacters: characterList + characterList3,
+      existingCharacters: characterList + characterList3,
       rejectedCharacters: characterList2);
 
   print(jsonEncode(characterList4));
