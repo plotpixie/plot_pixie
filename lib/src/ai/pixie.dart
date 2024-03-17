@@ -59,14 +59,13 @@ void main() async {
 
   print(jsonEncode(characterList2));
 
-  List<Node> characterList3 = await Pixie().getCharacterSuggestions(idea,
-      existingCharacters: characterList, rejectedCharacters: characterList2);
+  List<Node> characterList3 = await Pixie()
+      .getCharacterSuggestions(idea, existingCharacters: characterList);
 
   print(jsonEncode(characterList3));
 
   List<Node> characterList4 = await Pixie().getCharacterSuggestions(idea,
-      existingCharacters: characterList + characterList3,
-      rejectedCharacters: characterList2);
+      existingCharacters: characterList + characterList3);
 
   print(jsonEncode(characterList4));
 }
