@@ -1,15 +1,16 @@
 import 'dart:developer';
-import 'dart:io' show Platform;
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:plot_pixie/src/ai/ai_engine.dart';
+
+import '../../../env/env.dart';
 
 class Gemini extends AiEngine {
   GenerativeModel? model;
   ChatSession? chat;
 
   Gemini._privateConstructor() {
-    final apiKey = Platform.environment['GEMINI_KEY'] ?? 'default_key';
+    final apiKey = Env.GEMINI_KEY;
     model =
         GenerativeModel(model: 'gemini-pro', apiKey: apiKey, safetySettings: [
       SafetySetting(HarmCategory.harassment, HarmBlockThreshold.none),
