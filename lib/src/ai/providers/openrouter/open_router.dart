@@ -1,5 +1,4 @@
-import 'dart:io' show Platform;
-
+import '../../../env/env.dart';
 import '../../ai_engine.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -10,7 +9,7 @@ class OpenRouter extends AiEngine{
 
   OpenRouter(String modelName) {
     _modelName = modelName;
-    _apiKey = Platform.environment['OPENROUTER_API_KEY'] ?? '';
+    _apiKey = Env.OPENROUTER_API_KEY;
   }
 
   @override
