@@ -3,7 +3,7 @@ import '../../ai_engine.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class OpenRouter extends AiEngine{
+class OpenRouter extends AiEngine {
   String _modelName = "";
   String _apiKey = "";
 

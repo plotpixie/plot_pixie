@@ -46,7 +46,10 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
   Future<void> _fetchCharacters() async {
     log("Fetching");
 
-    List<Node> charactersInQueue = characters.where((character) => !selected.contains(character) && !discarded.contains(character)).toList();
+    List<Node> charactersInQueue = characters
+        .where((character) =>
+            !selected.contains(character) && !discarded.contains(character))
+        .toList();
     List<Node> newCards = await Pixie().getCharacterSuggestions(idea,
         numberOfCharacters: 4,
         existingCharacters: selected + charactersInQueue);
