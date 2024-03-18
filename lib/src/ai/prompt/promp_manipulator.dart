@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../model/node.dart';
 import '../model/trait.dart';
 
-enum ReturnType { node, trait, character }
+enum ReturnType { outline, node,  trait, character }
 
 class PromptManipulator {
   static Node _generateNodeStructure(List<String> types) {
@@ -35,13 +35,19 @@ class PromptManipulator {
         '$text. Return well-formed JSON and escape any characters that need escaping. Results are one single JSON array. OUTPUT FORMAT: ';
 
     switch (returnType) {
-      case ReturnType.node:
+      case ReturnType.outline:
         if (options.isEmpty) {
-          options = 'outline,act,beat';
+          options = 'act,beat';
         }
         decorated +=
             _isArray((_getNodeRepresentation(options.split(','))), isArray);
         break;
+      case ReturnType.node:
+        if (options.isEmpty) {
+          options = 'idea';
+        }
+        decorated +=
+            _isArray((_getNodeRepresentation(options.split(','))), isArray);
       case ReturnType.character:
         decorated += _isArray(_getCharacterRepresentation(), isArray) +
             '. Be specific. Instead of <character> has a habit of humming to herself when she\'s happy in the trait details prefer shorter sentences like hums to herself when happy. Do not return integer values in fields. Trait descriptions must always be a string.';
@@ -89,13 +95,10 @@ class PromptManipulator {
 dynamic decodeJson(ReturnType returnType, String text, bool isArray) {
   Object Function(Map<String, dynamic> json) fromJson;
   switch (returnType) {
-    case ReturnType.node:
-      fromJson = Node.fromJson;
-      break;
     case ReturnType.trait:
       fromJson = Trait.fromJson;
       break;
-    case ReturnType.character:
+    default:
       fromJson = Node.fromJson;
       break;
   }

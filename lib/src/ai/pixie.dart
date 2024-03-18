@@ -15,6 +15,18 @@ class Pixie {
 
   Pixie._internal();
 
+  Future<List<Node>> getIdeas(String prompt, {int numberOfIdeas = 5 }) async{
+    if(prompt.isEmpty){
+      prompt = "stories in different genres ";
+    }
+    String decoratedPrompt = PromptManipulator.decoratePrompt(
+        "generate $numberOfIdeas story ideas for $prompt . Title should be a creative name for the idea and the description should be the logline"
+        , ReturnType.node, options:'idea', isArray: true);
+    log(decoratedPrompt);
+    List<Node> ideas = await promptAiEngine(decoratedPrompt);
+    return ideas;
+  }
+
   Future<List<Node>> getCharacterSuggestions(Node idea,
       {int numberOfCharacters = 5,
       List<Node> existingCharacters = const []}) async {
@@ -29,15 +41,18 @@ class Pixie {
         isArray: true);
 
     log(decoratedPrompt);
+    List<Node> characters = await promptAiEngine(decoratedPrompt);
+    return characters;
+  }
 
-    // Wrap the call in a retry function with conversion logic
+  Future<List<Node>> promptAiEngine(String decoratedPrompt) async {
+       // Wrap the call in a retry function with conversion logic
     List<Node> characters = await retry(() async {
       String? result = await AiManager().prompt("gemini", decoratedPrompt);
       List<Node> characters = List<Node>.from(
           PromptManipulator.convertResult(result, ReturnType.character, true));
       return characters;
     }, retryIf: (e) => true, maxAttempts: 5);
-
     return characters;
   }
 
@@ -47,25 +62,21 @@ class Pixie {
 }
 
 void main() async {
-  final Node idea = Node("idea", "The Light Keepers",
-      "A remote lighthouse manned by a reclusive lighthouse keeper becomes the beacon of a strange phenomenon: a lighthouse that seems to attract mythical creatures drawn to its light.");
-  List<Node> characterList =
-      await Pixie().getCharacterSuggestions(idea, numberOfCharacters: 2);
+  final List<Node> ideas = await Pixie().getIdeas("");
 
-  print(jsonEncode(characterList));
+  ideas.forEach((idea) {
+    print(idea.toJson());
+  });
 
-  List<Node> characterList2 = await Pixie()
-      .getCharacterSuggestions(idea, existingCharacters: characterList);
+  final List<Node> darkSatires = await Pixie().getIdeas("a dark satire of a well known story");
+  darkSatires.forEach((book) {
+    print(book.toJson());
+  });
 
-  print(jsonEncode(characterList2));
+  List<Node> characters =
+      await Pixie().getCharacterSuggestions(darkSatires[0], numberOfCharacters: 5);
+  characters.forEach((character) {
+    print(character.toJson());
+  });
 
-  List<Node> characterList3 = await Pixie()
-      .getCharacterSuggestions(idea, existingCharacters: characterList);
-
-  print(jsonEncode(characterList3));
-
-  List<Node> characterList4 = await Pixie().getCharacterSuggestions(idea,
-      existingCharacters: characterList + characterList3);
-
-  print(jsonEncode(characterList4));
 }
