@@ -3,12 +3,41 @@ import 'dart:developer';
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:plot_pixie/src/ai/model/node.dart';
 import 'package:plot_pixie/src/ai/pixie.dart';
+import 'package:plot_pixie/src/presentation/state/idea_notifier.dart';
 
-import '../ai/model/node.dart';
-
-class ChoiceSwiper extends StatefulWidget {
+class ChoiceSwiper extends ConsumerWidget {
   final String title;
+
+  ChoiceSwiper({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final idea = ref.watch(selectedIdeaProvider);
+    return ChoiceSwiperState(idea: idea ?? Node("idea", "nothing", "yet"));
+  }
+}
+
+class ChoiceSwiperState extends StatefulWidget {
+  final Node idea;
+
+  const ChoiceSwiperState({required this.idea});
+
+  @override
+  _ChoiceSwiperState createState() => _ChoiceSwiperState();
+}
+
+class _ChoiceSwiperState extends State<ChoiceSwiperState> {
+  final AppinioSwiperController controller = AppinioSwiperController();
+  List<Node> characters = [];
+  int cardsLeft = 0;
+  List<Node> selected = [];
+  List<Node> discarded = [];
+
+  // Define colors list inside the state
   final List<Color> colors = [
     const Color.fromRGBO(247, 135, 154, 1.0), // #f7879a
     const Color.fromRGBO(237, 197, 87, 1.0), // #edc557
@@ -19,23 +48,6 @@ class ChoiceSwiper extends StatefulWidget {
     const Color.fromRGBO(240, 138, 93, 1.0), // #f08a5d
     const Color.fromRGBO(255, 221, 147, 1.0), // #ffdd93
   ];
-
-  ChoiceSwiper({super.key, required this.title});
-
-  @override
-  _ChoiceSwiperState createState() => _ChoiceSwiperState();
-}
-
-class _ChoiceSwiperState extends State<ChoiceSwiper> {
-  final AppinioSwiperController controller = AppinioSwiperController();
-  final Node idea = Node("idea", "The Illusion of Love",
-      "A struggling wedding magician, down on his luck and drowning in debt, becomes consumed by a dark obsession with a beautiful bride.  He discovers he has the power to manipulate emotions, and a twisted plan takes root in his mind.  Through subtle illusions and suggestive whispers, he warps the groom's perception, turning joyful anticipation into cold suspicion.  The wedding ceremony becomes a grotesque parody of love, with the vows laced with hidden barbs and the celebratory dance a performance of simmering resentment.  The magician takes a perverse satisfaction in orchestrating the disaster,  a cruel puppet master pulling the strings of the hapless groom's emotions.  But as the night progresses and the bride's true colors begin to show, the magician realizes he may have gotten more than he bargained for, entangled in a web of deceit with a woman as dangerous as his own dark magic.");
-
-  List<Node> characters = [];
-
-  int cardsLeft = 0;
-  List<Node> selected = [];
-  List<Node> discarded = [];
 
   @override
   void initState() {
@@ -50,15 +62,16 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
         .where((character) =>
             !selected.contains(character) && !discarded.contains(character))
         .toList();
-    List<Node> newCards = await Pixie().getCharacterSuggestions(idea,
-        numberOfCharacters: 4,
-        existingCharacters: selected + charactersInQueue);
+    List<Node> newCards = await Pixie()
+        .getCharacterSuggestions(widget.idea, // Use idea from widget
+            numberOfCharacters: 4,
+            existingCharacters: selected + charactersInQueue);
     if (cardsLeft < 2) {
       cardsLeft += newCards.length;
       characters += newCards;
       log("cards left: $cardsLeft");
       log("Fetching done: Character count is: ${characters.length}");
-      setState(() {}); // Notify the widget that state has changed
+      setState(() {});
     }
   }
 
@@ -68,14 +81,20 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
     return CupertinoPageScaffold(
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 1,
-        child: characters.isEmpty
-            ? Center(child: Text('Loading characters...'))
+        child: characters.isEmpty || cardsLeft == 0
+            ? Center(
+                child: Text('Loading characters...',
+                    style: TextStyle(
+                      fontSize: 32.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      decoration: TextDecoration.none,
+                    )))
             : AppinioSwiper(
                 invertAngleOnBottomDrag: true,
                 backgroundCardCount: 3,
                 swipeOptions: const SwipeOptions.symmetric(
                     horizontal: true, vertical: false),
-                // Now only horizontal swipes are allowed
                 controller: controller,
                 onSwipeEnd: _swipeEnd,
                 onEnd: _onEnd,
@@ -85,7 +104,7 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       alignment: Alignment.center,
-                      color: widget.colors[index % widget.colors.length],
+                      color: colors[index % colors.length],
                       child: Padding(
                         padding: EdgeInsets.all(20.0),
                         child: Column(
@@ -111,48 +130,46 @@ class _ChoiceSwiperState extends State<ChoiceSwiper> {
                                 decoration: TextDecoration.none,
                               ),
                             ),
-                            SizedBox(height: 20.0),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  SizedBox(height: 10.0),
-                                  Table(
-                                    columnWidths: const {
-                                      0: FlexColumnWidth(2),
-                                      // Adjust widths as needed
-                                      1: FlexColumnWidth(3),
-                                    },
-                                    children: [
-                                      for (var trait
-                                          in characters[index].traits)
-                                        TableRow(
-                                          children: [
-                                            Text(
-                                              trait!.type,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16.0,
-                                                color: Colors.black,
-                                                decoration: TextDecoration.none,
+                                children: [
+                                  SizedBox(height: 5.0),
+                                  for (var trait in characters[index].traits)
+                                    Column(
+                                      // Wrap RichText and SizedBox in a Column
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: trait!.type + ' : ',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16.0,
+                                                  color: Colors.black,
+                                                ),
                                               ),
-                                            ),
-                                            Text(
-                                              trait!.description,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.normal,
-                                                fontSize: 16.0,
-                                                color: Colors.black,
-                                                decoration: TextDecoration.none,
+                                              TextSpan(
+                                                text: trait!.description,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.normal,
+                                                  fontSize: 16.0,
+                                                  color: Colors.black,
+                                                ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                    ],
-                                  ),
+                                        SizedBox(
+                                            height:
+                                                5.0), // Add spacing between traits
+                                      ],
+                                    ),
+                                  SizedBox(height: 10.0),
                                 ],
                               ),
-                            ),
+                            )
                           ],
                         ),
                       ),
