@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import '../../../env/env.dart';
 import '../../ai_engine.dart';
 import 'dart:convert';
@@ -32,7 +34,7 @@ class OpenRouter extends AiEngine {
     if (response.statusCode == 200) {
       return jsonDecode(response.body)['choices'][0]['message']['content'];
     } else {
-      print('Request failed with status: ${response.statusCode}.');
+      log('Request failed with status: ${response.statusCode}.');
     }
   }
 }
