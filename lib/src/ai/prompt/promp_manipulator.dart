@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../model/node.dart';
 import '../model/trait.dart';
 
-enum ReturnType { outline, node,  trait, character }
+enum ReturnType { outline, node,  trait, character, scene }
 
 class PromptManipulator {
   static Node _generateNodeStructure(List<String> types) {
@@ -22,6 +22,12 @@ class PromptManipulator {
   static String _getCharacterRepresentation() {
     return _removeEmptyArrays(jsonEncode(
         Node('character', 'name', 'description', [], [Trait('age', '')])
+            .toJson()));
+  }
+
+  static String _getSceneRepresentation() {
+    return _removeEmptyArrays(jsonEncode(
+        Node('scene', 'scene title', 'plot description', [], [Trait('sceneHeading', '')])
             .toJson()));
   }
 
@@ -51,6 +57,10 @@ class PromptManipulator {
       case ReturnType.character:
         decorated += _isArray(_getCharacterRepresentation(), isArray) +
             '. Be specific. Instead of <character> has a habit of humming to herself when she\'s happy in the trait details prefer shorter sentences like hums to herself when happy. Do not return integer values in fields. Trait descriptions must always be a string.';
+        break;
+      case ReturnType.scene:
+        decorated += _getSceneRepresentation() +
+            '.  Trait descriptions must always be a string.';
         break;
       case ReturnType.trait:
         // Handle Trait case if necessary
