@@ -9,8 +9,9 @@ class AiManager {
   final Map<String, AiEngine> _engines = {};
 
   AiManager._privateConstructor() {
-     _engines['gemini'] = Gemini();
-     _engines['mistral'] = OpenRouter('mistralai/mistral-7b-instruct:free'); // tendency to return individual JSON arrays. Results not well formed.
+    _engines['gemini'] = Gemini();
+    _engines['mistral'] = OpenRouter(
+        'mistralai/mistral-7b-instruct:free'); // tendency to return individual JSON arrays. Results not well formed.
     /*
       _engines['mythomist'] = OpenRouter('gryphe/mythomist-7b:free'); // doesn't seem to handle number of characters very well, otherwise pretty solid
       _engines['cinematika'] = OpenRouter('openrouter/cinematika-7b:free');

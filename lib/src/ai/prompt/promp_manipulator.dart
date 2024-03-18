@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../model/node.dart';
 import '../model/trait.dart';
 
-enum ReturnType { outline, node,  trait, character, scene }
+enum ReturnType { outline, node, trait, character, scene }
 
 class PromptManipulator {
   static Node _generateNodeStructure(List<String> types) {
@@ -26,9 +26,8 @@ class PromptManipulator {
   }
 
   static String _getSceneRepresentation() {
-    return _removeEmptyArrays(jsonEncode(
-        Node('scene', 'scene title', 'plot description', [], [Trait('sceneHeading', '')])
-            .toJson()));
+    return _removeEmptyArrays(jsonEncode(Node('scene', 'scene title',
+        'plot description', [], [Trait('sceneHeading', '')]).toJson()));
   }
 
   static String _isArray(String s, bool isArray) {
