@@ -3,20 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plot_pixie/src/ai/model/node.dart';
 import 'package:plot_pixie/src/presentation/state/idea_notifier.dart';
-
 import '../ai/pixie.dart';
+import 'colors.dart';
 
 class IdeaChooser extends ConsumerWidget {
+  const IdeaChooser({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return _IdeaChooser._IdeaChooser(ref);
+    return _IdeaChooser._ideaChooser(ref);
   }
 }
 
 class _IdeaChooser extends StatefulWidget {
   final WidgetRef ref;
 
-  _IdeaChooser._IdeaChooser(this.ref);
+  const _IdeaChooser._ideaChooser(this.ref);
 
   @override
   _IdeaChooserState createState() => _IdeaChooserState();
@@ -32,14 +34,63 @@ class _IdeaChooserState extends State<_IdeaChooser> {
     _ideaList = Pixie().getIdeas('');
   }
 
+  Widget _buildIdeaCard(
+      BuildContext context, AsyncSnapshot<List<Node>> snapshot, Node idea) {
+    int index = snapshot.data!.indexOf(idea);
+    return Padding(
+      padding: const EdgeInsets.all(5.0),
+      child: GestureDetector(
+        onTap: () {
+          widget.ref
+              .read(selectedIdeaProvider.notifier)
+              .selectIdea(snapshot.data![index]);
+          GoRouter.of(context).go('/characters');
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            color: colors[index % colors.length],
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    idea.title,
+                    style: const TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                  const SizedBox(height: 5.0),
+                  Text(
+                    idea.description,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Idea Chooser'),
+        title: const Text('Idea Chooser'),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.send),
+            icon: const Icon(Icons.send),
             onPressed: () {
               setState(() {
                 _ideaList = Pixie().getIdeas(_controller.text);
@@ -54,7 +105,7 @@ class _IdeaChooserState extends State<_IdeaChooser> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _controller,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Enter your own idea',
               ),
             ),
@@ -64,30 +115,14 @@ class _IdeaChooserState extends State<_IdeaChooser> {
               future: _ideaList,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 } else {
                   return ListView.builder(
                     itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(snapshot.data![index].title),
-                        subtitle: Text(
-                          snapshot.data![index].description,
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        onTap: () {
-                          widget.ref
-                              .read(selectedIdeaProvider.notifier)
-                              .selectIdea(snapshot.data![index]);
-                          GoRouter.of(context).go('/characters');
-                        },
-                      );
-                    },
+                    itemBuilder: (context, index) => _buildIdeaCard(
+                        context, snapshot, snapshot.data![index]),
                   );
                 }
               },

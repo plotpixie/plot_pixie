@@ -4,10 +4,10 @@ import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:plot_pixie/src/ai/model/node.dart';
 import 'package:plot_pixie/src/ai/pixie.dart';
 import 'package:plot_pixie/src/presentation/state/idea_notifier.dart';
+import 'package:plot_pixie/src/presentation/colors.dart';
 
 class ChoiceSwiper extends ConsumerWidget {
   final String title;
@@ -36,18 +36,6 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
   int cardsLeft = 0;
   List<Node> selected = [];
   List<Node> discarded = [];
-
-  // Define colors list inside the state
-  final List<Color> colors = [
-    const Color.fromRGBO(247, 135, 154, 1.0), // #f7879a
-    const Color.fromRGBO(237, 197, 87, 1.0), // #edc557
-    const Color.fromRGBO(243, 246, 244, 1.0), // #f3f6f4
-    const Color.fromRGBO(61, 173, 183, 1.0), // #3dadb7
-    const Color.fromRGBO(116, 116, 189, 1.0), // #7474bd
-    const Color.fromRGBO(168, 208, 230, 1.0), // #a8d0e6
-    const Color.fromRGBO(240, 138, 93, 1.0), // #f08a5d
-    const Color.fromRGBO(255, 221, 147, 1.0), // #ffdd93
-  ];
 
   @override
   void initState() {
