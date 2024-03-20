@@ -4,7 +4,7 @@ import 'colors.dart';
 import 'package:plot_pixie/src/ai/model/node.dart';
 
 class CharacterCard extends StatelessWidget {
-  const CharacterCard({
+  CharacterCard({
     super.key,
     required this.characters,
     required this.index,
@@ -12,6 +12,7 @@ class CharacterCard extends StatelessWidget {
     required this.discardFunction,
   });
 
+  final ScrollController _scrollController = ScrollController();
   final List<Node> characters;
   final int index;
   final Function addFunction;
@@ -24,90 +25,102 @@ class CharacterCard extends StatelessWidget {
       child: Container(
         alignment: Alignment.center,
         color: colors[index % colors.length],
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(height: 20.0),
-              Text(
-                '${characters[index].title}',
-                style: TextStyle(
-                  fontSize: 32.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  decoration: TextDecoration.none,
-                ),
-              ),
-              SizedBox(height: 10.0),
-              Text(
-                characters[index].description,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                  decoration: TextDecoration.none,
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 5.0),
-                    for (var trait in characters[index].traits)
-                      Column(
-                        // Wrap RichText and SizedBox in a Column
-                        children: [
-                          RichText(
-                            text: TextSpan(
+        child: Stack(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: ListView(
+                controller: _scrollController,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          generateTextSpan('${characters[index].title}\n', 32.0,
+                              FontWeight.bold),
+                          generateTextSpan('\n', 8.0, FontWeight.normal),
+                          generateTextSpan('${characters[index].description}\n',
+                              18.0, FontWeight.normal),
+                          generateTextSpan('\n', 8.0, FontWeight.normal),
+                          for (var trait in characters[index].traits)
+                            TextSpan(
                               children: [
-                                TextSpan(
-                                  text: trait!.type + ' : ',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16.0,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: trait!.description,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 16.0,
-                                    color: Colors.black,
-                                  ),
-                                ),
+                                generateTextSpan('${capitalize(trait!.type)}: ',
+                                    18.0, FontWeight.bold),
+                                generateTextSpan('${trait.description}\n', 18.0,
+                                    FontWeight.normal),
+                                generateTextSpan('\n', 8.0, FontWeight.normal),
                               ],
                             ),
-                          ),
-                          SizedBox(height: 5.0), // Add spacing between traits
                         ],
                       ),
-                    SizedBox(height: 10.0),
-                  ],
-                ),
-              ),
-              // Add buttons here
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.check_box, color: Colors.green),
-                    onPressed: () {
-                      addFunction(index);
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.red),
-                    onPressed: () {
-                      discardFunction(index);
-                    },
+                    ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            // Floating buttons
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  _swipeButton(Icons.close_rounded, Colors.red, () {
+                    _scrollController.animateTo(
+                      0.0,
+                      duration: const Duration(milliseconds: 10),
+                      curve: Curves.easeOut,
+                    );
+                    discardFunction();
+                  }),
+                  _swipeButton(Icons.favorite_rounded, Colors.green, () {
+                    _scrollController.animateTo(
+                      0.0,
+                      duration: const Duration(milliseconds: 10),
+                      curve: Curves.easeOut,
+                    );
+                    addFunction();
+                  }),
+                ],
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  TextSpan generateTextSpan(String text, double fontSize, FontWeight weight) {
+    return TextSpan(
+      text: text,
+      style: TextStyle(
+        fontSize: fontSize,
+        fontWeight: weight,
+        color: Colors.black,
+      ),
+    );
+  }
+
+  String capitalize(String s) {
+    return "${s[0].toUpperCase()}${s.substring(1)}";
+  }
+
+  Widget _swipeButton(IconData icon, Color color, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        margin: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(10.0),
+        decoration: ShapeDecoration(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(60)),
+          color: color,
+          shadows: const [BoxShadow(color: Colors.black, blurRadius: 5)],
+        ),
+        child: Icon(icon, color: Colors.white, size: 45.0),
       ),
     );
   }

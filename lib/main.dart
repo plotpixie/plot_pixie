@@ -22,8 +22,7 @@ final _router = GoRouter(
   routes: [
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
-      builder: (context, state, child) =>
-          BottomNavigation(child: child),
+      builder: (context, state, child) => BottomNavigation(child: child),
       routes: [
         GoRoute(
           path: '/',

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:appinio_swiper/appinio_swiper.dart';
@@ -44,7 +45,7 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
     _fetchCharacters();
   }
 
-  Future<void> _fetchCharacters() async {
+  Future<void> _fetchCharacters({int charCount = 2}) async {
     log("Fetching");
 
     List<Node> charactersInQueue = characters
@@ -53,32 +54,35 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
         .toList();
     List<Node> newCards = await Pixie()
         .getCharacterSuggestions(widget.idea, // Use idea from widget
-            numberOfCharacters: 4,
+            numberOfCharacters: charCount,
             existingCharacters: selected + charactersInQueue);
-    if (cardsLeft < 2) {
-      cardsLeft += newCards.length;
-      characters += newCards;
-      log("cards left: $cardsLeft");
-      log("Fetching done: Character count is: ${characters.length}");
-      setState(() {});
+    cardsLeft += newCards.length;
+    characters += newCards;
+    log("Fetching done: cards left is : $cardsLeft");
+    setState(() {});
+    if (cardsLeft <= 3) {
+      _fetchCharacters();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    log("cards left: $cardsLeft");
     return CupertinoPageScaffold(
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 1,
-        child: characters.isEmpty || cardsLeft == 0
+        child: characters.isEmpty ||
+                (controller.cardIndex == characters.length - 1)
             ? Center(
-                child: Text('Loading characters...',
-                    style: TextStyle(
-                      fontSize: 32.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      decoration: TextDecoration.none,
-                    )))
+                child: Text(
+                'Loading characters...',
+                style: TextStyle(
+                  fontSize: 28.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  decoration: TextDecoration.none,
+                ),
+                textAlign: TextAlign.center,
+              ))
             : AppinioSwiper(
                 invertAngleOnBottomDrag: true,
                 backgroundCardCount: 3,
@@ -92,8 +96,8 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
                   return CharacterCard(
                       characters: characters,
                       index: index,
-                      addFunction: _selectCharacter,
-                      discardFunction: _discardCharacter);
+                      addFunction: _swipeRight,
+                      discardFunction: _swipeLeft);
                 },
               ),
       ),
@@ -104,17 +108,15 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
     switch (activity) {
       case Swipe():
         cardsLeft--;
-        if (cardsLeft < 2) {
+        log("cards left: $cardsLeft");
+        if (cardsLeft <= 3) {
           _fetchCharacters();
         }
-        log("cards left: $cardsLeft");
         if (activity.direction == AxisDirection.right) {
           _selectCharacter(previousIndex);
         } else if (activity.direction == AxisDirection.left) {
           _discardCharacter(previousIndex);
         }
-        log('The card was swiped to the : ${activity.direction}');
-        log('previous index: $previousIndex, target index: $targetIndex');
         break;
       case Unswipe():
       case CancelSwipe():
@@ -124,12 +126,19 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
 
   void _discardCharacter(int previousIndex) {
     discarded.add(characters[previousIndex]);
-    log('Added character to discarded list: ${discarded.last.title}');
+  }
+
+  void _swipeLeft() {
+    controller.swipeLeft();
+  }
+
+  void _swipeRight() {
+    controller.swipeRight();
   }
 
   void _selectCharacter(int previousIndex) {
     selected.add(characters[previousIndex]);
-    log('Added character to approved list: ${selected.last.title}');
+    log('Approved list is ' + jsonEncode(selected));
   }
 
   void _onEnd() {

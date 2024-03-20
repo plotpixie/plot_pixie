@@ -31,7 +31,7 @@ class _IdeaChooserState extends State<_IdeaChooser> {
   @override
   void initState() {
     super.initState();
-    _ideaList = Pixie().getIdeas('');
+    _ideaList = Pixie().getIdeas('', numberOfIdeas: 15);
   }
 
   Widget _buildIdeaCard(
@@ -51,24 +51,24 @@ class _IdeaChooserState extends State<_IdeaChooser> {
           child: Container(
             color: colors[index % colors.length],
             child: Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
                     idea.title,
                     style: const TextStyle(
-                      fontSize: 24.0,
+                      fontSize: 18.0,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                       decoration: TextDecoration.none,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 5.0),
                   Text(
                     idea.description,
                     style: const TextStyle(
-                      fontSize: 16.0,
+                      fontSize: 18.0,
                       fontWeight: FontWeight.normal,
                       color: Colors.black,
                       decoration: TextDecoration.none,
@@ -87,7 +87,6 @@ class _IdeaChooserState extends State<_IdeaChooser> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Idea Chooser'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.send),
@@ -106,7 +105,7 @@ class _IdeaChooserState extends State<_IdeaChooser> {
             child: TextField(
               controller: _controller,
               decoration: const InputDecoration(
-                labelText: 'Enter your own idea',
+                labelText: 'Suggest your own idea',
               ),
             ),
           ),

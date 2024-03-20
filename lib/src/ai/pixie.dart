@@ -16,11 +16,8 @@ class Pixie {
   Pixie._internal();
 
   Future<List<Node>> getIdeas(String prompt, {int numberOfIdeas = 5}) async {
-    if (prompt.isEmpty) {
-      prompt = "stories in different genres ";
-    }
     String decoratedPrompt = PromptManipulator.decoratePrompt(
-        "generate $numberOfIdeas story ideas for $prompt . Title should be a creative name for the idea and the description should be the logline",
+        "generate $numberOfIdeas original story ideas: $prompt. The description is the logline",
         ReturnType.node,
         options: 'idea',
         isArray: true);
@@ -66,10 +63,11 @@ class Pixie {
     String options =
         'guilty pleasure,catchphrase,quirks,pet peeves,favorite quote,strangest dream,embarrassing memory,weird habit,ideal weekend,bucket list item,guilty pleasure,lucky charm,hidden talent,dream vacation,deepest secret,strange hobby, proudest achievement, best childhood memory';
     String existing = (existingCharacters.length > 0)
-        ? "Besides these characters: ${summarizeRoles(existingCharacters)}, "
+        ? "I already have these characters: ${summarizeRoles(existingCharacters)}, Don't repeat any names or professions from this list.  "
         : '';
     String prompt =
-        "My story has this title: '${idea.title}' and this logline: '${idea.description}'. $existing. Who are the other protagonists, antagonists, minor characters and supporting characters? Imagine $numberOfCharacters other characters for the story.  title should be 'first name, age, occupation'. The description is a detailed 3 paragraph backstory in the character's own voice. Don't talk about others. Generate 4 to 6 traits. Traits are unique and obscure information about the character. trait types must be in this list: ' $options '. ";
+        "My story has this title: '${idea.title}' and this logline: '${idea.description}'. $existing. Who are the other protagonists, antagonists, minor characters and supporting characters? Imagine $numberOfCharacters other characters for the story.  title should be 'first name, age, occupation'. The description is a detailed 3 paragraph backstory in the character's own voice without mentioning any other characters. Generate 4 to 6 traits. Traits are unique and obscure information about the character. trait types must be in this list: ' $options '. ";
+    log(prompt);
     List<Node> characters =
         await promptAiEngine(prompt, returnType: ReturnType.character);
     return characters;
@@ -90,7 +88,7 @@ class Pixie {
   }
 
   String summarizeRoles(List<Node> nodes) {
-    return nodes.map((node) => '${node.title}').join('; ');
+    return '[${nodes.map((node) => '${node.title}').join('; ')}]';
   }
 }
 
