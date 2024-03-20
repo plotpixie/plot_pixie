@@ -7,7 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:plot_pixie/src/ai/model/node.dart';
 import 'package:plot_pixie/src/ai/pixie.dart';
 import 'package:plot_pixie/src/presentation/state/idea_notifier.dart';
-import 'package:plot_pixie/src/presentation/colors.dart';
+
+import 'character_card.dart';
 
 class ChoiceSwiper extends ConsumerWidget {
   final String title;
@@ -88,81 +89,11 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
                 onEnd: _onEnd,
                 cardCount: characters.length,
                 cardBuilder: (BuildContext context, int index) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      alignment: Alignment.center,
-                      color: colors[index % colors.length],
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            SizedBox(height: 20.0),
-                            Text(
-                              '${characters[index].title}',
-                              style: TextStyle(
-                                fontSize: 32.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                            SizedBox(height: 10.0),
-                            Text(
-                              characters[index].description,
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.black,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: 5.0),
-                                  for (var trait in characters[index].traits)
-                                    Column(
-                                      // Wrap RichText and SizedBox in a Column
-                                      children: [
-                                        RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: trait!.type + ' : ',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16.0,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text: trait!.description,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.normal,
-                                                  fontSize: 16.0,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(
-                                            height:
-                                                5.0), // Add spacing between traits
-                                      ],
-                                    ),
-                                  SizedBox(height: 10.0),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
+                  return CharacterCard(
+                      characters: characters,
+                      index: index,
+                      addFunction: _selectCharacter,
+                      discardFunction: _discardCharacter);
                 },
               ),
       ),
@@ -178,11 +109,9 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
         }
         log("cards left: $cardsLeft");
         if (activity.direction == AxisDirection.right) {
-          selected.add(characters[previousIndex]);
-          log('Added character to approved list: ${selected.last.title}');
+          _selectCharacter(previousIndex);
         } else if (activity.direction == AxisDirection.left) {
-          discarded.add(characters[previousIndex]);
-          log('Added character to discarded list: ${discarded.last.title}');
+          _discardCharacter(previousIndex);
         }
         log('The card was swiped to the : ${activity.direction}');
         log('previous index: $previousIndex, target index: $targetIndex');
@@ -191,6 +120,16 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
       case CancelSwipe():
       case DrivenActivity():
     }
+  }
+
+  void _discardCharacter(int previousIndex) {
+    discarded.add(characters[previousIndex]);
+    log('Added character to discarded list: ${discarded.last.title}');
+  }
+
+  void _selectCharacter(int previousIndex) {
+    selected.add(characters[previousIndex]);
+    log('Added character to approved list: ${selected.last.title}');
   }
 
   void _onEnd() {
