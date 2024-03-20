@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Dropbox {
-
   static Future<void> upload() async {
     var filePath = 'path_to_your_file';
     var file = File(filePath);
@@ -31,5 +30,4 @@ class Dropbox {
       print('Failed to upload file: ${response.statusCode}');
     }
   }
-
 }
