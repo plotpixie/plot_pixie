@@ -31,6 +31,7 @@ class Gemini extends AiEngine {
   Future<String?> prompt(String prompt) async {
     try {
       if (chat != null) {
+        chat = model?.startChat(history: []);
         var response = await model?.generateContent([Content.text(prompt)]);
         return response?.text;
       }

@@ -109,7 +109,7 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
       case Swipe():
         cardsLeft--;
         log("cards left: $cardsLeft");
-        if (cardsLeft <= 3) {
+        if (cardsLeft <= 2) {
           _fetchCharacters();
         }
         if (activity.direction == AxisDirection.right) {
