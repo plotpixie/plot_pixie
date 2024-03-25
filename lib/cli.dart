@@ -25,7 +25,7 @@ void main() async {
   characters.forEach((character) {
     print(jsonEncode(character));
   });
-
+/*
   List<Node> acts = await Pixie().getActs(idea, characters);
 
   print(jsonEncode(acts));
@@ -39,4 +39,6 @@ void main() async {
       await Pixie().generateSceneContent(idea, characters, actsWithBeats);
 
   print(jsonEncode(fleshedOutScenes));
+  */
+
 }
