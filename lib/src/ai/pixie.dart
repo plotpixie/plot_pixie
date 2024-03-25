@@ -3,9 +3,8 @@ import 'dart:developer';
 
 import 'package:plot_pixie/src/ai/ai_manager.dart';
 import 'package:plot_pixie/src/ai/model/node.dart';
+import 'package:plot_pixie/src/ai/prompt/promp_manipulator.dart';
 import 'package:retry/retry.dart';
-
-import 'model/trait.dart';
 
 class Pixie {
   static final Pixie _instance = Pixie._internal();
@@ -17,12 +16,16 @@ class Pixie {
   Pixie._internal();
 
   Future<List<Node>> getIdeas(String prompt, {int numberOfIdeas = 5}) async {
-    List<Node> ideas = await promptAiEngine(
-        "generate $numberOfIdeas original screenplay ideas for $prompt. description is the logline. ", 'idea');
+    String decoratedPrompt = PromptManipulator.decoratePrompt(
+        "generate $numberOfIdeas original screenplay ideas for $prompt. The description is the logline, make the title titillating. ",
+        ReturnType.node,
+        options: 'idea',
+        isArray: true);
+    log(decoratedPrompt);
+    List<Node> ideas = await promptAiEngine(decoratedPrompt);
     return ideas;
   }
 
-/*
   Future<List<Node>> getActs(Node idea, List<Node> characters) async {
     String decoratedPrompt = PromptManipulator.decoratePrompt(
         "Generate a 3 act hollywood screenplays for the following title: ${idea.title} and logline; ${idea.description}. Here are all the characters you must incorporate: ${jsonEncode(characters)}. Act descriptions are a high level idea of what is happening.",
@@ -68,7 +71,7 @@ class Pixie {
              The beat title should be a master scene heading.
              The beat descriptions summarize the main actions and plot points in the beat. 
              There is no need for detailed character descriptions within the outline.
-             For act ${actCount}, generate all of the following beats: ${beatTypes.join(",")}.
+             For act ${actCount}, generate the following beats: ${beatTypes.join(",")}.
              The plot point trait should be the type of the beat: for example {'type':'plot_point':, 'description': 'catalyst'}. 
              The outside_plot trait for each beat describes the beat in terms of the action/outside plot development for the central character. 
              The inside_plot trait describes in detail the beat in terms of the emotional/inside plot development for the central character. 
@@ -138,7 +141,9 @@ class Pixie {
         isArray: true);
     log(decoratedPrompt);
     List<Node> scenes = await promptAiEngine(decoratedPrompt);
+
     print(jsonEncode(scenes.first.traits));
+
     return scenes.first;
   }
 
@@ -161,7 +166,7 @@ class Pixie {
     }, retryIf: (e) => true, maxAttempts: 5);
     return text;
   }
-*/
+
   Future<List<Node>> getCharacterSuggestions(Node idea,
       {int numberOfCharacters = 5,
       List<Node> existingCharacters = const []}) async {
@@ -170,51 +175,24 @@ class Pixie {
     String existing = (existingCharacters.length > 0)
         ? "I already have these characters: ${summarizeRoles(existingCharacters)}, Don't repeat any names or professions from this list.  "
         : '';
-
     String prompt =
-        "Generate $numberOfCharacters characters / lines. Story title is: '${idea.title}' with logline: '${idea.description}'. $existing. Characters can be protagonists, antagonists, minor characters and supporting characters. Imagine $numberOfCharacters other characters for the story. For each of these characters, generate a list of traits. mandatory traits are name, age, occupation, appearance, profile. profile is detailed 3 paragraph backstory in the character's own voice without mentioning any other characters. Add additional fun facts traits and pick 6 different answers for each character from this list: ' $options '. ";
-    List<List<Trait>> traits =
-        await promptAiEngine(prompt, 'person', returnType: ReturnType.trait);
-
-    List<Node> characterSuggestions = traits.map((traitList) {
-      String title = traitList
-          .where((trait) =>
-      trait.type == 'name' || trait.type == 'age' || trait.type == 'occupation')
-          .map((trait) => trait.description)
-          .join(', ');
-
-      String description = traitList
-          .firstWhere((trait) => trait.type == 'profile', orElse: () => Trait('', ''))
-          .description;
-
-      return Node('character', title, description, [], traitList);
-    }).toList();
-
-    return characterSuggestions;
+        "My story has this title: '${idea.title}' and this logline: '${idea.description}'. $existing. Who are the other protagonists, antagonists, minor characters and supporting characters? Imagine $numberOfCharacters other characters for the story.  title should be 'first name, age, occupation'. The description is a detailed 3 paragraph backstory in the character's own voice without mentioning any other characters. Generate 4 to 6 traits. A mandatory trait is appearance. Other traits are unique and obscure information about the character. trait types must be in this list: ' $options '. ";
+    log(prompt);
+    List<Node> characters =
+        await promptAiEngine(prompt, returnType: ReturnType.character);
+    return characters;
   }
 
-  Future<dynamic> promptAiEngine(String prompt, String type,
+  Future<List<Node>> promptAiEngine(String prompt,
       {ReturnType returnType = ReturnType.node}) async {
-    dynamic nodes = await retry(() async {
+    String decoratedPrompt =
+        PromptManipulator.decoratePrompt(prompt, returnType, isArray: true);
 
-      String modifiedPrompt = "output one $type per line. response only. plain text. don't add ** around titles. ";
-
-      if (returnType == ReturnType.node) {
-        modifiedPrompt += "line format must be ' title || description '. ";
-      } else if (returnType == ReturnType.trait) {
-        modifiedPrompt +=
-            " render traits as key:value . traits are separated by || . Always include the key, use name:maya instead of just maya. Escape paragraphs with in trait values with ###NEWLINE####. Line format example: 'name:xyz||age:xxxx||...'.  ";
-      }
-
-      modifiedPrompt += prompt;
-
-      String? result = await AiManager().prompt("gemini", modifiedPrompt);
-
-      if (returnType == ReturnType.node) {
-        return nodeListFromString(result!, type);
-      } else {
-        return traitsListFromString(result!, type);
-      }
+    List<Node> nodes = await retry(() async {
+      String? result = await AiManager().prompt("gemini", decoratedPrompt);
+      List<Node> nodes = List<Node>.from(
+          PromptManipulator.convertResult(result, returnType, true));
+      return nodes;
     }, retryIf: (e) => true, maxAttempts: 5);
     return nodes;
   }
@@ -222,42 +200,4 @@ class Pixie {
   String summarizeRoles(List<Node> nodes) {
     return '[${nodes.map((node) => '${node.title}').join('; ')}]';
   }
-
-  List<Node> nodeListFromString(String text, String type) {
-    return text
-        .split('\n')
-        .map((line) {
-          var parts = line.split('||').map((part) => part.trim()).toList();
-          if (parts.length < 2) return null;
-          return Node(type, parts[0], parts[1], [], []);
-        })
-        .where((node) => node != null)
-        .toList()
-        .cast<Node>();
-  }
-
-  Future<List<List<Trait>>> traitsListFromString(String text, String type) async {
-    return text
-        .split('\n')
-        .map((line) {
-          var parts = line.split('||').map((part) => part.trim()).toList();
-
-          List<Trait> traits = parts
-              .map((traitString) {
-                var traitData = traitString.split(':');
-                return traitData.length < 2
-                    ? null
-                    : Trait(traitData[0], traitData.sublist(1).join(':'));
-              })
-              .where((trait) => trait != null)
-              .toList()
-              .cast<Trait>();
-
-          return traits;
-        })
-        .where((traits) => traits != null && traits.isNotEmpty)
-        .toList();
-  }
 }
-
-enum ReturnType { node, trait, character }
