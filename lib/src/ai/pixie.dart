@@ -3,17 +3,28 @@ import 'dart:developer';
 
 import 'package:plot_pixie/src/ai/ai_manager.dart';
 import 'package:plot_pixie/src/ai/model/node.dart';
+import 'package:plot_pixie/src/ai/model/work.dart';
 import 'package:plot_pixie/src/ai/prompt/promp_manipulator.dart';
 import 'package:retry/retry.dart';
 
 class Pixie {
   static final Pixie _instance = Pixie._internal();
 
+  final Work work = Work();
+
   factory Pixie() {
     return _instance;
   }
 
   Pixie._internal();
+
+  void setIdea(Node idea){
+    this.work.idea = idea;
+  }
+
+  void setCharacters(List<Node> characters){
+    this.work.characters = characters;
+  }
 
   Future<List<Node>> getIdeas(String prompt, {int numberOfIdeas = 5}) async {
     String decoratedPrompt = PromptManipulator.decoratePrompt(
@@ -26,52 +37,55 @@ class Pixie {
     return ideas;
   }
 
-  Future<List<Node>> getActs(Node idea, List<Node> characters) async {
+  Future<void>  generateActs() async {
     String decoratedPrompt = PromptManipulator.decoratePrompt(
-        "Generate a 3 act hollywood screenplays for the following title: ${idea.title} and logline; ${idea.description}. Here are all the characters you must incorporate: ${jsonEncode(characters)}. Act descriptions are a high level idea of what is happening.",
+        "Generate a 3 act hollywood screenplays for the following title: ${work.idea?.title ?? 'Untitled'} and logline; ${work.idea?.description ?? 'No logline available'}. Here are all the characters you must incorporate: ${jsonEncode(work.characters)}. Act descriptions are a high level idea of what is happening.",
         ReturnType.node,
         options: "act",
         isArray: true);
     log(decoratedPrompt);
-    List<Node> acts = await promptAiEngine(decoratedPrompt);
-    acts = await generateBeats(idea, characters, acts);
-    return acts;
+    work.acts = await promptAiEngine(decoratedPrompt);
+    await generateBeats();
   }
 
-  Future<List<Node>> generateBeats(
-      Node idea, List<Node> characters, List<Node> acts) async {
+  Future<void>  generateBeats() async {
     List<List<String>> beats = [
-      ["Opening image", "theme started", "setup", "catalyst", "debate"],
+      ["opening image", "theme started", "setup", "catalyst", "debate", "break into two"],
       [
-        "break into two",
-        "B-story",
+        "b-story",
         "fun and games",
-        "midpoint",
+        "midpoint"
         "bad guys close in",
         "all is lost",
-        "Dark Night of the Soul",
+        "dark Night of the Soul",
+        "break into 3"
       ],
-      ["break into 3", 'finale', 'final image'] // Act 3
+      ['finale', 'final image'] // Act 3
     ];
 
-    for (int act = 0; act < acts.length; act++) {
-      acts[act].nodes =
-          await Pixie().getBeats(idea, characters, acts, act + 1, beats[act]);
+    for (int act = 0; act < work.acts.length; act++) {
+     work.acts[act].nodes =
+          await Pixie().getBeats(act + 1, beats[act]);
     }
-    return acts;
   }
 
-  Future<List<Node>> getBeats(Node idea, List<Node> characters, List<Node> acts,
-      int actCount, List<String> beatTypes) async {
+  Future<List<Node>> getBeats(int actCount, List<String> beatTypes) async {
     String decoratedPrompt = PromptManipulator.decoratePrompt("""
-             My screen play has the following title: ${idea.title} and logline; ${idea.description}. 
-             The outline I has far is ${jsonEncode(acts)} 
-             The characters are ${jsonEncode(characters)}
-             Generate the following beats for element ${actCount} of this array, it should be act ${actCount}: ${jsonEncode(acts)}. 
+             My screen play has the following title: ${work.idea?.title} and logline; ${work.idea?.description}. 
+             The outline I has far is ${jsonEncode(work.acts)} 
+             The characters are ${jsonEncode(work.characters)} 
              The beat title should be a master scene heading.
              The beat descriptions summarize the main actions and plot points in the beat. 
              There is no need for detailed character descriptions within the outline.
-             For act ${actCount}, generate the following beats: ${beatTypes.join(",")}.
+             
+             In the beat, make explicit choices and outline specific details. For example, if there is choice to be made state the choice and make it. 
+             
+             For act ${actCount}, generate the following beats: ${beatTypes.join(",")}. They should correspond to the save the cat format and follow closely to what that type entails.
+             
+             Altogether, the plot within the beats should closely follow the act description and cover all points of this:
+             
+             ${work.acts[actCount-1].description}
+              
              The plot point trait should be the type of the beat: for example {'type':'plot_point':, 'description': 'catalyst'}. 
              The outside_plot trait for each beat describes the beat in terms of the action/outside plot development for the central character. 
              The inside_plot trait describes in detail the beat in terms of the emotional/inside plot development for the central character. 
@@ -87,43 +101,23 @@ class Pixie {
     return beats;
   }
 
-  Future<List<Node>> generateScenesForBeats(
-      Node idea, List<Node> characters, List<Node> acts) async {
-    List<List<int>> sceneCounts = [
-      [1, 1, 3, 1, 8], // Act 1
-      [1, 3, 9, 1, 7, 1, 6], // Act 2
-      [1, 10, 3] // Act 3
+ Future< void> generateScenesForBeats() async {
+    List<String> multiScene = [
+      'setup', 'debate', 'fun and games', 'bad guys close in', 'dark night of the soul', 'finale'
     ];
 
-    for (int act = 0; act < sceneCounts.length; act++) {
-      for (int beat = 0; beat < sceneCounts[act].length; beat++) {
-        int scenes = sceneCounts[act][beat];
-        acts[act].nodes[beat]?.nodes = await Pixie()
-            .generateScenes(idea, characters, acts, act, beat, scenes);
+    for (int act = 0; act < work.acts.length; act++) {
+      for (int beat = 0; beat < work.acts[act].nodes.length; beat++) {
+        work.acts[act].nodes[beat]?.nodes = await Pixie()
+            .generateScenes(act, beat, multiScene);
       }
     }
-    return acts;
   }
 
-  Future<List<Node>> generateSceneContent(
-      Node idea, List<Node> characters, List<Node> acts) async {
-    for (int act = 0; act < acts.length; act++) {
-      for (int beat = 0; beat < acts[act].nodes.length; beat++) {
-        for (int scene = 0;
-            scene < acts[act].nodes[beat]!.nodes.length;
-            beat++) {
-          acts[act].nodes[beat]?.nodes[scene] = await Pixie()
-              .generateScene(idea, characters, acts, act, beat, scene);
-        }
-      }
-    }
-    return acts;
-  }
-
-  Future<List<Node>> generateScenes(Node idea, List<Node> characters,
-      List<Node> acts, int act, int beat, int numberOfScenes) async {
+  Future<List<Node>> generateScenes(int act, int beat, List<String> multiScenes) async {
+    bool isMultiScene = multiScenes.contains(work.acts[act].nodes[beat]?.getTrait("plot_point").toString());
     String decoratedPrompt = PromptManipulator.decoratePrompt(
-        "For this idea: ${jsonEncode(idea)}, these characters ${jsonEncode(characters)} and this outline ${jsonEncode(acts)}, generate $numberOfScenes scenes for act ${act} and beat ${beat}. The scene title should be a quick summary of what is happening and the description should show a high level detailed actions and important events in the scene. Don't generate any dialogue yet.",
+        "For this idea: ${jsonEncode(work.idea)}, these characters ${jsonEncode(work.characters)} and this outline ${jsonEncode(work.acts)}, suggest ${ isMultiScene ? 'at least 4 scenes' : 'a scene' } for act ${act} and beat ${beat} that continues the details of the previous scenes and takes into account the act and beat details. The scene title should be a quick summary of what is happening and the description should show a high level detailed actions and important events in the scene. Don't generate any dialogue yet.",
         ReturnType.node,
         options: 'scene',
         isArray: true);
@@ -132,10 +126,23 @@ class Pixie {
     return scenes;
   }
 
-  Future<Node> generateScene(Node idea, List<Node> characters, List<Node> acts,
+  void generateSceneContent() async {
+    for (int act = 0; act < work.acts.length; act++) {
+      for (int beat = 0; beat < work.acts[act].nodes.length; beat++) {
+        for (int scene = 0;
+        scene < work.acts[act].nodes[beat]!.nodes.length;
+        beat++) {
+          work.acts[act].nodes[beat]?.nodes[scene] = await Pixie()
+              .generateScene(act, beat, scene);
+        }
+      }
+    }
+  }
+
+  Future<Node> generateScene(
       int act, int beat, int numberOfScenes) async {
     String decoratedPrompt = PromptManipulator.decoratePrompt(
-        "For this idea: ${jsonEncode(idea)}, these characters ${jsonEncode(characters)} and this outline ${jsonEncode(acts)}, generate a new node to replace the scene node, keep the title and description the same. Generate a well written screenplay scene that represents the details of the beat and the scene, taking into account all the previous dialogue and actions. Each line of dialogue should be an item in the trait array. Valid trait types are General, Scene Heading, Action, Character, Parenthetical, Dialogue, Transition and Shot.  ",
+        "For this idea: ${jsonEncode(work.idea)}, these characters ${jsonEncode(work.characters)} and this outline ${jsonEncode(work.acts)}, generate a new node to replace the scene node, keep the title and description the same. Generate a well written screenplay scene that represents the details of the beat and the scene, taking into account all the previous dialogue and actions. Each line of dialogue should be an item in the trait array. Valid trait types are General, Scene Heading, Action, Character, Parenthetical, Dialogue, Transition and Shot.  ",
         ReturnType.node,
         options: 'scene',
         isArray: true);
@@ -167,7 +174,7 @@ class Pixie {
     return text;
   }
 
-  Future<List<Node>> getCharacterSuggestions(Node idea,
+  Future<List<Node>> getCharacterSuggestions(
       {int numberOfCharacters = 5,
       List<Node> existingCharacters = const []}) async {
     String options =
@@ -176,7 +183,7 @@ class Pixie {
         ? "I already have these characters: ${summarizeRoles(existingCharacters)}, Don't repeat any names or professions from this list.  "
         : '';
     String prompt =
-        "My story has this title: '${idea.title}' and this logline: '${idea.description}'. $existing. Who are the other protagonists, antagonists, minor characters and supporting characters? Imagine $numberOfCharacters other characters for the story.  title should be 'first name, age, occupation'. The description is a detailed 3 paragraph backstory in the character's own voice without mentioning any other characters. Generate 4 to 6 traits. A mandatory trait is appearance. Other traits are unique and obscure information about the character. trait types must be in this list: ' $options '. ";
+        "My story has this title: '${work.idea?.title}' and this logline: '${work.idea?.description}'. $existing. Who are the other protagonists, antagonists, minor characters and supporting characters? Imagine $numberOfCharacters other characters for the story.  title should be 'first name, age, occupation'. The description is a detailed 3 paragraph backstory in the character's own voice without mentioning any other characters. Generate 4 to 6 traits. A mandatory trait is appearance. Other traits are unique and obscure information about the character. trait types must be in this list: ' $options '. ";
     log(prompt);
     List<Node> characters =
         await promptAiEngine(prompt, returnType: ReturnType.character);

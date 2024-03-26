@@ -53,7 +53,7 @@ class _ChoiceSwiperState extends State<ChoiceSwiperState> {
             !selected.contains(character) && !discarded.contains(character))
         .toList();
     List<Node> newCards = await Pixie()
-        .getCharacterSuggestions(widget.idea, // Use idea from widget
+        .getCharacterSuggestions( // Use idea from widget
             numberOfCharacters: charCount,
             existingCharacters: selected + charactersInQueue);
     cardsLeft += newCards.length;
