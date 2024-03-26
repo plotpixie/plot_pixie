@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:plot_pixie/src/ai/pixie.dart';
 import 'package:plot_pixie/src/ai/model/node.dart';
+import 'package:plot_pixie/src/fileformats/fountain.dart';
 
 void main() async {
   print("\x1B[32mEnter your prompt idea:\x1B[0m");
@@ -20,23 +21,31 @@ void main() async {
 
   Node idea = ideas[choice];
 
+  Pixie().setIdea(idea);
+
   List<Node> characters =
-      await Pixie().getCharacterSuggestions(idea, numberOfCharacters: 5);
+      await Pixie().getCharacterSuggestions(numberOfCharacters: 5);
   characters.forEach((character) {
     print(jsonEncode(character));
   });
 
-  List<Node> acts = await Pixie().getActs(idea, characters);
+  Pixie().setCharacters(characters);
 
-  print(jsonEncode(acts));
+  await Pixie().generateActs();
 
-  List<Node> actsWithBeats =
-      await Pixie().generateScenesForBeats(idea, characters, acts);
+  Fountain.write(new File("${Pixie().work.idea?.title}.fountain"), Pixie().work);
 
-  print(jsonEncode(actsWithBeats));
+  /*
+
+  print(jsonEncode(Pixie().work.acts));
+
+  await Pixie().generateScenesForBeats();
+
+  print(jsonEncode(Pixie().work.acts));
 
   List<Node> fleshedOutScenes =
       await Pixie().generateSceneContent(idea, characters, actsWithBeats);
 
   print(jsonEncode(fleshedOutScenes));
+   */
 }
