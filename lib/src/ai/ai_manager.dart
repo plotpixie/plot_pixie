@@ -24,10 +24,20 @@ class AiManager {
     return _instance;
   }
 
-  Future<String?> prompt(String engineName, String prompt) async {
+  Future<String?> prompt(String engineName, String prompt,
+      {bool isChat = true}) async {
     AiEngine? engine = _engines[engineName];
     if (engine != null) {
-      return await engine.prompt(prompt);
+      return await isChat ? engine.chat(prompt) : engine.prompt(prompt);
+    } else {
+      throw Exception('AI engine $engineName not found');
+    }
+  }
+
+  Future<void> resetChat(String engineName) async{
+    AiEngine? engine = _engines[engineName];
+    if (engine != null) {
+      return await engine.resetChat();
     } else {
       throw Exception('AI engine $engineName not found');
     }

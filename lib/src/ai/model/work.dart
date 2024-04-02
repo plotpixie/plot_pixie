@@ -5,7 +5,6 @@ part 'work.g.dart';
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class Work {
-
   Work([this.idea, this.characters = const [], this.acts = const []]);
 
   Node? idea;
@@ -15,5 +14,4 @@ class Work {
   factory Work.fromJson(Map<String, dynamic> json) => _$WorkFromJson(json);
 
   Map<String, dynamic> toJson() => _$WorkToJson(this);
-
 }

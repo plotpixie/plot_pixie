@@ -23,29 +23,6 @@ void main() async {
 
   Pixie().setIdea(idea);
 
-  List<Node> characters =
-      await Pixie().getCharacterSuggestions(numberOfCharacters: 5);
-  characters.forEach((character) {
-    print(jsonEncode(character));
-  });
-
-  Pixie().setCharacters(characters);
-
-  await Pixie().generateActs();
-
-  Fountain.write(new File("${Pixie().work.idea?.title}.fountain"), Pixie().work);
-
-  /*
-
-  print(jsonEncode(Pixie().work.acts));
-
-  await Pixie().generateScenesForBeats();
-
-  print(jsonEncode(Pixie().work.acts));
-
-  List<Node> fleshedOutScenes =
-      await Pixie().generateSceneContent(idea, characters, actsWithBeats);
-
-  print(jsonEncode(fleshedOutScenes));
-   */
+  print("Generating Script");
+  await Pixie().generateScript();
 }

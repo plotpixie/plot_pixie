@@ -7,10 +7,10 @@ import '../../../env/env.dart';
 
 class Gemini extends AiEngine {
   GenerativeModel? model;
-  ChatSession? chat;
+  ChatSession? session;
 
   Gemini._privateConstructor() {
-    final apiKey = Env.GEMINI_KEY;
+    const apiKey = Env.GEMINI_KEY;
     model =
         GenerativeModel(model: 'gemini-pro', apiKey: apiKey, safetySettings: [
       SafetySetting(HarmCategory.harassment, HarmBlockThreshold.none),
@@ -18,7 +18,7 @@ class Gemini extends AiEngine {
       SafetySetting(HarmCategory.sexuallyExplicit, HarmBlockThreshold.none),
       SafetySetting(HarmCategory.hateSpeech, HarmBlockThreshold.none),
     ]);
-    chat = model?.startChat(history: []);
+    session = model?.startChat(history: []);
   }
 
   static final Gemini _instance = Gemini._privateConstructor();
@@ -30,18 +30,31 @@ class Gemini extends AiEngine {
   @override
   Future<String?> prompt(String prompt) async {
     try {
-      if (chat != null) {
-        chat = model?.startChat(history: []);
-        var response = await model?.generateContent([Content.text(prompt)]);
-        return response?.text;
-      }
+      var response = await model?.generateContent([Content.text(prompt)]);
+      return response?.text;
+    } catch (e) {
+      log('Failed with error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String?> chat(String prompt, [bool reset = false]) async {
+    try {
+      session ??= model?.startChat(history: []);
+      var response = await session?.sendMessage(Content.text(prompt));
+      return response?.text;
     } catch (e) {
       if (e.toString() == "Candidate was blocked due to safety") {
-        chat = model?.startChat(history: []);
+        session = model?.startChat(history: []);
       }
       log('Failed with error: $e');
       rethrow;
     }
-    return null;
+  }
+
+  @override
+  Future<void> resetChat() async {
+    session = model?.startChat(history: []);
   }
 }

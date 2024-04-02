@@ -37,4 +37,14 @@ class OpenRouter extends AiEngine {
       log('Request failed with status: ${response.statusCode}.');
     }
   }
+
+  @override
+  Future<String?> chat(String prompt, [bool reset = false]) async {
+    return await this.prompt(prompt);
+  }
+
+  @override
+  Future<void> resetChat() async {
+    // tbd
+  }
 }
